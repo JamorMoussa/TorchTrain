@@ -8,8 +8,13 @@ from typing import Callable
 import functools 
 
 
-class BaseTainerConfigs:
-    pass 
+class BaseTainerConfigs(ABC):
+    
+
+    @staticmethod
+    @abstractmethod
+    def defaults():
+        ...
 
 
 class BaseTrainer(ABC):
