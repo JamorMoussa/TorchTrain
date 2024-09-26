@@ -1,7 +1,10 @@
 from ._base import BaseTrainer, BaseTainerConfigs
 from .utils.validate import validate_trainer_attributes
+from .train import train_model
 
 from dataclasses import dataclass, field
+from typing import Self
+
 import torch
 
 
@@ -9,9 +12,11 @@ import torch
 class TorchTrainerConfigs(BaseTainerConfigs):
 
     device: torch.DeviceObjType = field(default_factory= lambda: torch.device("cpu"))
+    num_iters: int = field(default_factory= lambda: 5)
 
     @staticmethod
-    def defaults(): return TorchTrainerConfigs()
+    def defaults() -> Self:
+        return TorchTrainerConfigs()
     
 
 
@@ -22,11 +27,16 @@ class TorchTrainer(BaseTrainer):
         super(TorchTrainer, self).__init__(configs = configs)
 
 
-    def train(self, num_iters: int = 100):
-        # validate trainer attributes: 
-        # validate_trainer_attributes(trainer=self)
+    def train(self, num_iters: int = None):
+        
+        validate_trainer_attributes(trainer=self)
 
+        if num_iters is not None:
+            self.configs.num_iters = num_iters
 
-        self.train_step_func()
-        self.test_step_func()
+        train_model(
+            trainer= self,
+            train_step= self.train_step_func, 
+            configs= self.configs
+        )
 
