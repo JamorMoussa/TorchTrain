@@ -1,16 +1,14 @@
+from torch.utils.data import DataLoader
 import torch, torch.nn as nn
 import torch.optim as optim
-from torch.utils.data import DataLoader
 
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
-from typing import Callable
+from typing import Callable, Self
 import functools 
 
 
 class BaseTainerConfigs(ABC):
     
-
     @staticmethod
     @abstractmethod
     def defaults():
@@ -19,8 +17,8 @@ class BaseTainerConfigs(ABC):
 
 class BaseTrainer(ABC):
 
-
     def __init__(self, configs: BaseTainerConfigs):
+        super(BaseTrainer, self).__init__()
         
         self.configs: BaseTainerConfigs = configs
 
@@ -55,18 +53,23 @@ class BaseTrainer(ABC):
         self.train_loader = train_loader
         self.test_loader = test_loader
 
+
     def train_step(self, train_step_wrapped_func):
+        
         @functools.wraps(train_step_wrapped_func)
-        def wrapper(*args, **kwargs):
-            train_step_wrapped_func(self, *args, **kwargs)
+        def wrapper(trainer: Self, batch: torch.Tensor):
+            return train_step_wrapped_func(trainer, batch)
 
         self.train_step_func = wrapper
         return wrapper
 
+
     def test_step(self, test_step_wrapped_func):
+
         @functools.wraps(test_step_wrapped_func)
-        def wrapper(*args, **kwargs):
-            test_step_wrapped_func(self, *args, **kwargs)
+        @torch.no_grad()
+        def wrapper(trainer: Self, batch: torch.Tensor):
+            return test_step_wrapped_func(trainer, batch)
         
         self.test_step_func = wrapper
         return wrapper
