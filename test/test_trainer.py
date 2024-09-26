@@ -9,12 +9,12 @@ trainer = ttn.TorchTrainer(configs= configs)
 
 
 @trainer.train_step
-def train_step(trainer: ttn.TorchTrainer):
+def train_step(trainer: ttn.TorchTrainer, batch: torch.Tensor):
     print(trainer.__class__.__name__)
     print(trainer.configs.device)
 
 @trainer.test_step
-def test_step(trainer: ttn.TorchTrainer):
+def test_step(trainer: ttn.TorchTrainer, batch: torch.Tensor):
     print(trainer.model)
 
 
