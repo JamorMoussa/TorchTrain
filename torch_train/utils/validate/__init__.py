@@ -1,1 +1,1 @@
-from .trainer_attrs import validate_trainer_attributes
+from .trainer import validate_trainer_attributes

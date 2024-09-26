@@ -33,3 +33,5 @@ def validate_trainer_attributes(trainer):
     validate_lossfn(trainer.loss_fn)
     
     validate_data_loaders(trainer.train_loader, trainer.test_loader)
+
+    # TODO: #1 add validation for train_step and test_step decorators.
