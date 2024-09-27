@@ -1,3 +1,5 @@
+from ..utils.results import TrainigOutputsResults 
+
 from torch.utils.data import DataLoader
 import torch, torch.nn as nn
 
@@ -20,6 +22,8 @@ def train_model(
     configs: 'TorchTrainerConfigs', 
 ):
     steps: int = 1
+
+    results_outer = TrainigOutputsResults()
 
     for epoch in (bar:= tqdm(range(configs.num_iters))):
         train_loss = 0
@@ -50,7 +54,14 @@ def train_model(
 
                 test_loss += v_outs.loss.item()
 
-        run_each_epoch()
-        
-        bar.set_description(f"Epoch {epoch+1}/{configs.num_iters} | Train loss: {train_loss / len(train_loader):.4} | Test loss: {test_loss / len(test_loader):.4}")
+        train_loss /= len(train_loader)
+        test_loss /= len(test_loader)
 
+        results_outer.set_train_loss(train_loss= train_loss)
+        results_outer.set_test_loss(test_loss= test_loss)
+
+        run_each_epoch()
+
+        bar.set_description(f"Epoch {epoch+1}/{configs.num_iters} | Train loss: {train_loss:.4} | Test loss: {test_loss:.4}")
+
+    return results_outer

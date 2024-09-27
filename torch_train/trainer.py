@@ -41,7 +41,7 @@ class TorchTrainer(BaseTrainer):
         if self._run_each_epoch is None:
             self._run_each_epoch = lambda: None 
 
-        train_model(
+        return train_model(
             model= self.model,
             loss_fn= self.loss_fn,
             train_loader= self.train_loader,
