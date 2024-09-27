@@ -1,4 +1,4 @@
-from .utils import OutputsResults
+from .utils import OutputsForClassification
 
 
 from torch.utils.data import DataLoader
@@ -65,7 +65,7 @@ class BaseTrainer(ABC):
 
             self.optimizer.zero_grad()
 
-            outs: OutputsResults  = train_step_wrapped_func(*args, **kargs)
+            outs: OutputsForClassification  = train_step_wrapped_func(*args, **kargs)
 
             outs.loss.backward()
 

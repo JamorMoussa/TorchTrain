@@ -42,7 +42,9 @@ class TorchTrainer(BaseTrainer):
             model= self.model,
             loss_fn= self.loss_fn,
             train_loader= self.train_loader,
+            test_loader= self.test_loader,
             train_step= self.train_step_func, 
+            test_step= self.test_step_func,
             configs= self.configs
         )
 

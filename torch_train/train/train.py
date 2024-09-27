@@ -7,19 +7,21 @@ from typing import TYPE_CHECKING, Callable
 
 
 if TYPE_CHECKING:
-    from ..trainer import TorchTrainer, TorchTrainerConfigs
+    from ..trainer import TorchTrainerConfigs
 
 
 def train_model(
     model: torch.nn.Module, 
     loss_fn: torch.nn.modules.loss._Loss,
     train_loader: DataLoader,
-    train_step: Callable[['TorchTrainer', torch.Tensor], None],
+    test_loader: DataLoader,
+    train_step: Callable,
+    test_step: Callable,
     configs: 'TorchTrainerConfigs', 
 ):
     steps: int = 1
     for epoch in (bar:= tqdm(range(configs.num_iters))):
-        total_loss = 0
+        train_loss = 0
         for step, (inputs, labels) in enumerate(train_loader):
             batch = (
                 inputs.to(configs.device),
@@ -29,9 +31,18 @@ def train_model(
 
             steps += 1
 
-            total_loss += outs.loss.item()
+            train_loss += outs.loss.item()
 
+        with torch.no_grad():
+            test_loss = 0 
+            for v_step, (v_inputs, v_labels) in enumerate(test_loader):
+                v_batch = (
+                    v_inputs.to(configs.device), v_labels.to(configs.device)
+                )
 
+                v_outs = test_step(model=model, loss_fn=loss_fn, batch=v_batch, steps=steps)
 
-        bar.set_description(f"Loss: {total_loss / len(train_loader):.4}")
+                test_loss += v_outs.loss.item()
+
+        bar.set_description(f"Epoch {epoch+1}/{configs.num_iters} | Train loss: {train_loss / len(train_loader):.4} | Test loss: {test_loss / len(test_loader):.4}")
 
