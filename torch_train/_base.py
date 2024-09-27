@@ -32,8 +32,9 @@ class BaseTrainer(ABC):
         self.train_loader: DataLoader = None
         self.test_loader: DataLoader = None 
 
-        self.train_step_func: Callable = None
-        self.test_step_func: Callable = None
+        self._train_test_step: Callable = None
+
+        self._run_each_epoch: Callable = None 
 
 
     def set_model(
@@ -58,34 +59,37 @@ class BaseTrainer(ABC):
         self.test_loader = test_loader
 
 
-    def train_step(self, train_step_wrapped_func):
+    def train_test_step(self, train_test_func):
+
+        # TODO: #3 No need for a test_step wrapper
         
-        @functools.wraps(train_step_wrapped_func)
+        @functools.wraps(train_test_func)
         def wrapper(*args, **kargs):
 
-            self.optimizer.zero_grad()
+            outs: OutputsForClassification  = train_test_func(*args, **kargs)
 
-            outs: OutputsForClassification  = train_step_wrapped_func(*args, **kargs)
+            if self.model.training:
+                self.optimizer.zero_grad()
 
-            outs.loss.backward()
+                outs.loss.backward()
 
-            self.optimizer.step()
+                self.optimizer.step()
 
             return outs 
 
-        self.train_step_func = wrapper
+        self._train_test_step = wrapper
         return wrapper
 
+    def run_each_epoch(self, run_each_epoch):
 
-    def test_step(self, test_step_wrapped_func):
-
-        @functools.wraps(test_step_wrapped_func)
-        @torch.no_grad()
-        def wrapper(*args, **kargs):
-            return test_step_wrapped_func(*args, **kargs)
+        @functools.wraps(run_each_epoch)
+        def wrapper(*args, **kwargs):
+            
+            return run_each_epoch(*args, **kwargs)
         
-        self.test_step_func = wrapper
+        self._run_each_epoch = wrapper
         return wrapper
+
 
     @abstractmethod
     def train(self, num_iters: int):

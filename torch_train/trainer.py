@@ -38,13 +38,16 @@ class TorchTrainer(BaseTrainer):
         if num_iters is not None:
             self.configs.num_iters = num_iters
 
+        if self._run_each_epoch is None:
+            self._run_each_epoch = lambda: None 
+
         train_model(
             model= self.model,
             loss_fn= self.loss_fn,
             train_loader= self.train_loader,
             test_loader= self.test_loader,
-            train_step= self.train_step_func, 
-            test_step= self.test_step_func,
+            train_test_step= self._train_test_step,
+            run_each_epoch= self._run_each_epoch,
             configs= self.configs
         )
 

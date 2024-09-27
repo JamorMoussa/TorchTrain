@@ -15,34 +15,42 @@ def train_model(
     loss_fn: torch.nn.modules.loss._Loss,
     train_loader: DataLoader,
     test_loader: DataLoader,
-    train_step: Callable,
-    test_step: Callable,
+    train_test_step: Callable,
+    run_each_epoch: Callable,
     configs: 'TorchTrainerConfigs', 
 ):
     steps: int = 1
+
     for epoch in (bar:= tqdm(range(configs.num_iters))):
         train_loss = 0
+        
+        model.train()
         for step, (inputs, labels) in enumerate(train_loader):
+            
             batch = (
                 inputs.to(configs.device),
                 labels.to(configs.device)
             )
-            outs = train_step(model=model, loss_fn=loss_fn, batch=batch, steps=steps)
+            outs = train_test_step(model=model, loss_fn=loss_fn, batch=batch, steps=steps)
 
             steps += 1
 
             train_loss += outs.loss.item()
 
         with torch.no_grad():
-            test_loss = 0 
+            test_loss = 0
+
+            model.eval()
             for v_step, (v_inputs, v_labels) in enumerate(test_loader):
                 v_batch = (
                     v_inputs.to(configs.device), v_labels.to(configs.device)
                 )
 
-                v_outs = test_step(model=model, loss_fn=loss_fn, batch=v_batch, steps=steps)
+                v_outs = train_test_step(model=model, loss_fn=loss_fn, batch=v_batch, steps=steps)
 
                 test_loss += v_outs.loss.item()
 
+        run_each_epoch()
+        
         bar.set_description(f"Epoch {epoch+1}/{configs.num_iters} | Train loss: {train_loss / len(train_loader):.4} | Test loss: {test_loss / len(test_loader):.4}")
 
