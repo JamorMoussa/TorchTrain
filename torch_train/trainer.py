@@ -28,6 +28,10 @@ class TorchTrainer(BaseTrainer):
 
 
     def train(self, num_iters: int = None):
+
+        ## TODO: #2 make train_step optinal
+        # User may not specify a train_step, so the trainer must use a default 
+        # train_step/test_step for more custimisation.
         
         validate_trainer_attributes(trainer=self)
 
@@ -35,7 +39,9 @@ class TorchTrainer(BaseTrainer):
             self.configs.num_iters = num_iters
 
         train_model(
-            trainer= self,
+            model= self.model,
+            loss_fn= self.loss_fn,
+            train_loader= self.train_loader,
             train_step= self.train_step_func, 
             configs= self.configs
         )

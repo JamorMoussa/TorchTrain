@@ -1,10 +1,14 @@
+from .utils import OutputsResults
+
+
 from torch.utils.data import DataLoader
 import torch, torch.nn as nn
 import torch.optim as optim
 
 from abc import ABC, abstractmethod
-from typing import Callable, Self
+from typing import Callable
 import functools 
+
 
 
 class BaseTainerConfigs(ABC):
@@ -57,8 +61,17 @@ class BaseTrainer(ABC):
     def train_step(self, train_step_wrapped_func):
         
         @functools.wraps(train_step_wrapped_func)
-        def wrapper(trainer: Self, batch: torch.Tensor):
-            return train_step_wrapped_func(trainer, batch)
+        def wrapper(*args, **kargs):
+
+            self.optimizer.zero_grad()
+
+            outs: OutputsResults  = train_step_wrapped_func(*args, **kargs)
+
+            outs.loss.backward()
+
+            self.optimizer.step()
+
+            return outs 
 
         self.train_step_func = wrapper
         return wrapper
@@ -68,8 +81,8 @@ class BaseTrainer(ABC):
 
         @functools.wraps(test_step_wrapped_func)
         @torch.no_grad()
-        def wrapper(trainer: Self, batch: torch.Tensor):
-            return test_step_wrapped_func(trainer, batch)
+        def wrapper(*args, **kargs):
+            return test_step_wrapped_func(*args, **kargs)
         
         self.test_step_func = wrapper
         return wrapper
