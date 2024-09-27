@@ -1,1 +1,1 @@
-from .results import OutputsResults
+from .results import OutputsForClassification
